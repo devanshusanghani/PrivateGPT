@@ -108,15 +108,6 @@ class LocalSettings(BaseModel):
             "`llama2` is the historic behaviour. `default` might work better with your custom models."
         ),
     )
-    default_system_prompt: str | None = Field(
-        None,
-        description=(
-            "The default system prompt to use for the chat engine. "
-            "If none is given - use the default system prompt (from the llama_index). "
-            "Please note that the default prompt might not be the same for all prompt styles. "
-            "Also note that this is only used if the first message is not a system message. "
-        ),
-    )
 
 
 class EmbeddingSettings(BaseModel):
@@ -154,6 +145,10 @@ class SagemakerSettings(BaseModel):
 
 class OpenAISettings(BaseModel):
     api_key: str
+    model: str = Field(
+        "gpt-3.5-turbo",
+        description=("OpenAI Model to use. Example: 'gpt-4'."),
+    )
 
 
 class UISettings(BaseModel):
