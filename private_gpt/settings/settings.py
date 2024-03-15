@@ -81,7 +81,9 @@ class DataSettings(BaseModel):
 
 
 class LLMSettings(BaseModel):
-    mode: Literal["llamacpp", "openai", "openailike", "sagemaker", "mock", "ollama"]
+    mode: Literal[
+        "llamacpp", "openai", "openailike", "azopenai", "sagemaker", "mock", "ollama"
+    ]
     max_new_tokens: int = Field(
         256,
         description="The maximum number of token that the LLM is authorized to generate in one completion.",
@@ -105,7 +107,7 @@ class LLMSettings(BaseModel):
 
 
 class VectorstoreSettings(BaseModel):
-    database: Literal["chroma", "qdrant", "pgvector"]
+    database: Literal["chroma", "qdrant", "postgres"]
 
 
 class NodeStoreSettings(BaseModel):
@@ -152,7 +154,7 @@ class HuggingFaceSettings(BaseModel):
 
 
 class EmbeddingSettings(BaseModel):
-    mode: Literal["huggingface", "openai", "sagemaker", "ollama", "mock"]
+    mode: Literal["huggingface", "openai", "azopenai", "sagemaker", "ollama", "mock"]
     ingest_mode: Literal["simple", "batch", "parallel"] = Field(
         "simple",
         description=(
@@ -176,6 +178,10 @@ class EmbeddingSettings(BaseModel):
             "Do not go too high with this number, as it might cause memory issues. (especially in `parallel` mode)\n"
             "Do not set it higher than your number of threads of your CPU."
         ),
+    )
+    embed_dim: int = Field(
+        384,
+        description="The dimension of the embeddings stored in the Postgres database",
     )
 
 
@@ -235,6 +241,25 @@ class OllamaSettings(BaseModel):
     )
 
 
+class AzureOpenAISettings(BaseModel):
+    api_key: str
+    azure_endpoint: str
+    api_version: str = Field(
+        "2023_05_15",
+        description="The API version to use for this operation. This follows the YYYY-MM-DD format.",
+    )
+    embedding_deployment_name: str
+    embedding_model: str = Field(
+        "text-embedding-ada-002",
+        description="OpenAI Model to use. Example: 'text-embedding-ada-002'.",
+    )
+    llm_deployment_name: str
+    llm_model: str = Field(
+        "gpt-35-turbo",
+        description="OpenAI Model to use. Example: 'gpt-4'.",
+    )
+
+
 class UISettings(BaseModel):
     enabled: bool
     path: str
@@ -277,17 +302,6 @@ class PostgresSettings(BaseModel):
     schema_name: str = Field(
         "public",
         description="The name of the schema in the Postgres database to use",
-    )
-
-
-class PGVectorSettings(PostgresSettings):
-    embed_dim: int = Field(
-        384,
-        description="The dimension of the embeddings stored in the Postgres database",
-    )
-    table_name: str = Field(
-        "embeddings",
-        description="The name of the table in the Postgres database where the embeddings are stored",
     )
 
 
@@ -356,11 +370,11 @@ class Settings(BaseModel):
     sagemaker: SagemakerSettings
     openai: OpenAISettings
     ollama: OllamaSettings
+    azopenai: AzureOpenAISettings
     vectorstore: VectorstoreSettings
     nodestore: NodeStoreSettings
     qdrant: QdrantSettings | None = None
     postgres: PostgresSettings | None = None
-    pgvector: PGVectorSettings | None = None
 
 
 """
