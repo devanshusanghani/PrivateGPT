@@ -209,6 +209,10 @@ class OllamaSettings(BaseModel):
         "http://localhost:11434",
         description="Base URL of Ollama API. Example: 'https://localhost:11434'.",
     )
+    embedding_api_base: str = Field(
+        "http://localhost:11434",
+        description="Base URL of Ollama embedding API. Example: 'https://localhost:11434'.",
+    )
     llm_model: str = Field(
         None,
         description="Model to use. Example: 'llama2-uncensored'.",
@@ -216,6 +220,10 @@ class OllamaSettings(BaseModel):
     embedding_model: str = Field(
         None,
         description="Model to use. Example: 'nomic-embed-text'.",
+    )
+    keep_alive: str = Field(
+        "5m",
+        description="Time the model will stay loaded in memory after a request. examples: 5m, 5h, '-1' ",
     )
     tfs_z: float = Field(
         1.0,
@@ -240,6 +248,10 @@ class OllamaSettings(BaseModel):
     repeat_penalty: float = Field(
         1.1,
         description="Sets how strongly to penalize repetitions. A higher value (e.g., 1.5) will penalize repetitions more strongly, while a lower value (e.g., 0.9) will be more lenient. (Default: 1.1)",
+    )
+    request_timeout: float = Field(
+        120.0,
+        description="Time elapsed until ollama times out the request. Default is 120s. Format is float. ",
     )
 
 
@@ -278,6 +290,33 @@ class UISettings(BaseModel):
     delete_all_files_button_enabled: bool = Field(
         False, description="If the button to delete all files is enabled or not."
     )
+
+
+class RerankSettings(BaseModel):
+    enabled: bool = Field(
+        False,
+        description="This value controls whether a reranker should be included in the RAG pipeline.",
+    )
+    model: str = Field(
+        "cross-encoder/ms-marco-MiniLM-L-2-v2",
+        description="Rerank model to use. Limited to SentenceTransformer cross-encoder models.",
+    )
+    top_n: int = Field(
+        2,
+        description="This value controls the number of documents returned by the RAG pipeline.",
+    )
+
+
+class RagSettings(BaseModel):
+    similarity_top_k: int = Field(
+        2,
+        description="This value controls the number of documents returned by the RAG pipeline or considered for reranking if enabled.",
+    )
+    similarity_value: float = Field(
+        None,
+        description="If set, any documents retrieved from the RAG must meet a certain match score. Acceptable values are between 0 and 1.",
+    )
+    rerank: RerankSettings
 
 
 class PostgresSettings(BaseModel):
@@ -375,6 +414,7 @@ class Settings(BaseModel):
     azopenai: AzureOpenAISettings
     vectorstore: VectorstoreSettings
     nodestore: NodeStoreSettings
+    rag: RagSettings
     qdrant: QdrantSettings | None = None
     postgres: PostgresSettings | None = None
 
