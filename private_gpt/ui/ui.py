@@ -475,8 +475,9 @@ class PrivateGptUi:
                                 None,
                                 AVATAR_BOT,
                             ),
-                        ),
-                        additional_inputs=[mode, upload_button, system_prompt_input],
+                        )
+                        #,
+                        #additional_inputs=[mode, upload_button, system_prompt_input],
                     )
         return blocks
 
