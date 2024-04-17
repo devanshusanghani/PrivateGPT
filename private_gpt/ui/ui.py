@@ -290,23 +290,23 @@ class PrivateGptUi:
             #             inputs=system_prompt_input,
             #         )
 
-                with gr.Column(scale=7):
-                    _ = gr.ChatInterface(
-                        self._chat,
-                        chatbot=gr.Chatbot(
-                            #Disabled the LLM mode Display option
-                            #label=f"LLM: {settings().llm.mode}",
-                            label=f"LLM: MTU Teaching Assitant for SAT3812",
-                            show_copy_button=True,
-                            elem_id="MTU Teaching Assitant for SAT3812",
-                            render=False,
-                            avatar_images=(
-                                None,
-                                AVATAR_BOT,
-                            ),
+            with gr.Column(scale=7):
+                _ = gr.ChatInterface(
+                    self._chat,
+                    chatbot=gr.Chatbot(
+                        #Disabled the LLM mode Display option
+                        #label=f"LLM: {settings().llm.mode}",
+                        label=f"LLM: MTU Teaching Assitant for SAT3812",
+                        show_copy_button=True,
+                        elem_id="MTU Teaching Assitant for SAT3812",
+                        render=False,
+                        avatar_images=(
+                            None,
+                            AVATAR_BOT,
                         ),
-                        # additional_inputs=[mode, upload_button, system_prompt_input],
-                    )     
+                    ),
+                    # additional_inputs=[mode, upload_button, system_prompt_input],
+                )     
         return blocks
 
     def get_ui_blocks(self) -> gr.Blocks:
