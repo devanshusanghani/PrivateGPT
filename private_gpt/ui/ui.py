@@ -1,5 +1,6 @@
-"""This file should be imported if and only if you want to run the UI locally."""
-
+"""This file should be imported only and only if you want to run the UI locally."""
+import os
+os.environ["GRADIO_ALLOW_FLAGGING"] = "never"
 import itertools
 import logging
 import time
@@ -29,7 +30,7 @@ THIS_DIRECTORY_RELATIVE = Path(__file__).parent.relative_to(PROJECT_ROOT_PATH)
 # Should be "private_gpt/ui/avatar-bot.ico"
 AVATAR_BOT = THIS_DIRECTORY_RELATIVE / "avatar-bot.ico"
 
-UI_TAB_TITLE = "My Private GPT"
+UI_TAB_TITLE = "MTU Virtual Assistant"
 
 SOURCES_SEPARATOR = "\n\n Sources: \n"
 
@@ -86,6 +87,8 @@ class PrivateGptUi:
         self._system_prompt = self._get_default_system_prompt(self.mode)
 
     def _chat(self, message: str, history: list[list[str]], mode: str, *_: Any) -> Any:
+        # Modify the _chat method to set the mode to "Query Docs" by default
+        mode = "Query Files"
         def yield_deltas(completion_gen: CompletionGen) -> Iterable[str]:
             full_response: str = ""
             stream = completion_gen.response
@@ -95,22 +98,6 @@ class PrivateGptUi:
                 elif isinstance(delta, ChatResponse):
                     full_response += delta.delta or ""
                 yield full_response
-                time.sleep(0.02)
-                
-            #commented the display sources method.
-            # if completion_gen.sources:
-            #     full_response += SOURCES_SEPARATOR
-            #     cur_sources = Source.curate_sources(completion_gen.sources)
-            #     sources_text = "\n\n\n"
-            #     used_files = set()
-            #     for index, source in enumerate(cur_sources, start=1):
-            #         if f"{source.file}-{source.page}" not in used_files:
-            #             sources_text = (
-            #                 sources_text
-            #                 + f"{index}. {source.file} (page {source.page}) \n\n"
-            #             )
-            #             used_files.add(f"{source.file}-{source.page}")
-            #     full_response += sources_text
             yield full_response
 
         def build_history() -> list[ChatMessage]:
@@ -302,182 +289,44 @@ class PrivateGptUi:
         with gr.Blocks(
             title=UI_TAB_TITLE,
             theme=gr.themes.Soft(primary_hue=slate),
-            css=".logo { "
-            "display:flex;"
-            "background-color: #C7BAFF;"
-            "height: 80px;"
-            "border-radius: 8px;"
-            "align-content: center;"
-            "justify-content: center;"
-            "align-items: center;"
-            "}"
-            ".logo img { height: 25% }"
-            ".contain { display: flex !important; flex-direction: column !important; }"
-            "#component-0, #component-3, #component-10, #component-8  { height: 100% !important; }"
-            "#chatbot { flex-grow: 1 !important; overflow: auto !important;}"
-            "#col { height: calc(100vh - 112px - 16px) !important; }",
+            css="""
+            footer {visibility: hidden}
+            <head>
+              <title>MTU Teaching Assistant</title>
+              <link rel="icon" type="image/png" href={logo_svg}>
+            </head>
+            .title {
+            white-space: pre; /* This preserves whitespace as is */
+            }   
+            .logo { 
+            display:flex;
+            background-color: #020009;
+            height: 100px;
+            border-radius: 8px;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            }
+            .logo img { height: 80% }
+                """,
         ) as blocks:
             with gr.Row():
-                gr.HTML(f"<div class='logo'/><img src={logo_svg} alt=PrivateGPT></div")
+                gr.HTML(f"<div class='logo'/><img src={logo_svg} alt=MTU Virtual Assistant></div")
 
-            
-            # with gr.Row(equal_height=False):
-            #     with gr.Column(scale=3):
-            #         mode = gr.Radio(
-            #             MODES,
-            #             label="Mode",
-            #             value="Query Files",
-            #         )
-            #         upload_button = gr.components.UploadButton(
-            #             "Upload File(s)",
-            #             type="filepath",
-            #             file_count="multiple",
-            #             size="sm",
-            #         )
-            #         ingested_dataset = gr.List(
-            #             self._list_ingested_files,
-            #             headers=["File name"],
-            #             label="Ingested Files",
-            #             height=235,
-            #             interactive=False,
-            #             render=False,  # Rendered under the button
-            #         )
-            #         upload_button.upload(
-            #             self._upload_file,
-            #             inputs=upload_button,
-            #             outputs=ingested_dataset,
-            #         )
-            #         ingested_dataset.change(
-            #             self._list_ingested_files,
-            #             outputs=ingested_dataset,
-            #         )
-            #         ingested_dataset.render()
-            #         deselect_file_button = gr.components.Button(
-            #             "De-select selected file", size="sm", interactive=False
-            #         )
-            #         selected_text = gr.components.Textbox(
-            #             "All files", label="Selected for Query or Deletion", max_lines=1
-            #         )
-            #         delete_file_button = gr.components.Button(
-            #             "🗑️ Delete selected file",
-            #             size="sm",
-            #             visible=settings().ui.delete_file_button_enabled,
-            #             interactive=False,
-            #         )
-            #         delete_files_button = gr.components.Button(
-            #             "⚠️ Delete ALL files",
-            #             size="sm",
-            #             visible=settings().ui.delete_all_files_button_enabled,
-            #         )
-            #         deselect_file_button.click(
-            #             self._deselect_selected_file,
-            #             outputs=[
-            #                 delete_file_button,
-            #                 deselect_file_button,
-            #                 selected_text,
-            #             ],
-            #         )
-            #         ingested_dataset.select(
-            #             fn=self._selected_a_file,
-            #             outputs=[
-            #                 delete_file_button,
-            #                 deselect_file_button,
-            #                 selected_text,
-            #             ],
-            #         )
-            #         delete_file_button.click(
-            #             self._delete_selected_file,
-            #             outputs=[
-            #                 ingested_dataset,
-            #                 delete_file_button,
-            #                 deselect_file_button,
-            #                 selected_text,
-            #             ],
-            #         )
-            #         delete_files_button.click(
-            #             self._delete_all_files,
-            #             outputs=[
-            #                 ingested_dataset,
-            #                 delete_file_button,
-            #                 deselect_file_button,
-            #                 selected_text,
-            #             ],
-            #         )
-            #         system_prompt_input = gr.Textbox(
-            #             placeholder=self._system_prompt,
-            #             label="System Prompt",
-            #             lines=2,
-            #             interactive=True,
-            #             render=False,
-            #         )
-            #         # When mode changes, set default system prompt
-            #         mode.change(
-            #             self._set_current_mode, inputs=mode, outputs=system_prompt_input
-            #         )
-            #         # On blur, set system prompt to use in queries
-            #         system_prompt_input.blur(
-            #             self._set_system_prompt,
-            #             inputs=system_prompt_input,
-            #         )
-
-                    def get_model_label() -> str | None:
-                        """Get model label from llm mode setting YAML.
-
-                        Raises:
-                            ValueError: If an invalid 'llm_mode' is encountered.
-
-                        Returns:
-                            str: The corresponding model label.
-                        """
-                        # Get model label from llm mode setting YAML
-                        # Labels: local, openai, openailike, sagemaker, mock, ollama
-                        config_settings = settings()
-                        if config_settings is None:
-                            raise ValueError("Settings are not configured.")
-
-                        # Get llm_mode from settings
-                        llm_mode = config_settings.llm.mode
-
-                        # Mapping of 'llm_mode' to corresponding model labels
-                        model_mapping = {
-                            "llamacpp": config_settings.llamacpp.llm_hf_model_file,
-                            "openai": config_settings.openai.model,
-                            "openailike": config_settings.openai.model,
-                            "sagemaker": config_settings.sagemaker.llm_endpoint_name,
-                            "mock": llm_mode,
-                            "ollama": config_settings.ollama.llm_model,
-                        }
-
-                        if llm_mode not in model_mapping:
-                            print(f"Invalid 'llm mode': {llm_mode}")
-                            return None
-
-                        return model_mapping[llm_mode]
-
-                with gr.Column(scale=7, elem_id="col"):
-                    # Determine the model label based on the value of PGPT_PROFILES
-                    model_label = get_model_label()
-                    if model_label is not None:
-                        label_text = (
-                            f"LLM: {settings().llm.mode} | Model: {model_label}"
-                        )
-                    else:
-                        label_text = f"LLM: {settings().llm.mode}"
-
-                    _ = gr.ChatInterface(
-                        self._chat,
-                        chatbot=gr.Chatbot(
-                            label=f"MTU Teaching Assistant:8002",
-                            show_copy_button=True,
-                            elem_id="chatbot",
-                            render=False,
-                            avatar_images=(
-                                None,
-                                AVATAR_BOT,
-                            ),
+            with gr.Column(scale=7, elem_id="col"):
+                _ = gr.ChatInterface(
+                    self._chat,
+                    chatbot=gr.Chatbot(
+                        #label=label_text,
+                        show_copy_button=True,
+                        elem_id="chatbot",
+                        render=False,
+                        avatar_images=(
+                            None,
+                            AVATAR_BOT,
                         ),
-                        additional_inputs=[mode, upload_button, system_prompt_input],
                     )
+                )
         return blocks
 
     def get_ui_blocks(self) -> gr.Blocks:
